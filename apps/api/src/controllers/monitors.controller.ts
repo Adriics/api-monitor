@@ -19,6 +19,24 @@ export async function getMonitors(req: AuthRequest, res: Response) {
     }
 }
 
+export async function getMonitorChecks(req: AuthRequest, res: Response) {
+    try {
+        const checks = await monitorsService.getMonitorChecks(req.userId!, req.params['id'] as string)
+        res.json(checks)
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno' })
+    }
+}
+
+export async function getMonitorStats(req: AuthRequest, res: Response) {
+    try {
+        const checks = await monitorsService.getMonitorStats(req.userId!, req.params['id'] as string)
+        res.json(checks)
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno' })
+    }
+}
+
 export async function createMonitor(req: AuthRequest, res: Response) {
     const result = monitorSchema.safeParse(req.body)
     if (!result.success) {
@@ -41,6 +59,7 @@ export async function updateMonitor(req: AuthRequest, res: Response) {
 
     try {
         const monitor = await monitorsService.updateMonitor(req.userId!, req.params['id'] as string, result.data)
+        res.json(monitor)
     } catch (error: any) {
         if (error.message === 'NOT_FOUND') {
             return res.status(404).json({ error: 'Monitor no encontrado' })
