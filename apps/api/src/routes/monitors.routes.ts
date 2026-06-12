@@ -6,6 +6,7 @@ import {
     getMonitorStats,
     createMonitor,
     updateMonitor,
+    getMonitor,
     deleteMonitor
 } from '../controllers/monitors.controller'
 
@@ -16,6 +17,7 @@ router.use(authMiddleware)
 router.get('/', getMonitors)
 router.get("/:id/checks", getMonitorChecks)
 router.get("/:id/stats", getMonitorStats)
+router.get('/:id', getMonitor)
 router.post('/', createMonitor)
 router.put('/:id', updateMonitor)
 router.delete('/:id', deleteMonitor)

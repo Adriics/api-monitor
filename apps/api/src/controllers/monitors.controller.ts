@@ -19,6 +19,17 @@ export async function getMonitors(req: AuthRequest, res: Response) {
     }
 }
 
+
+export async function getMonitor(req: AuthRequest, res: Response) {
+    try {
+        const monitor = await monitorsService.getMonitor(req.userId!, req.params['id'] as string)
+        if (!monitor) return res.status(404).json({ error: 'Monitor no encontrado' })
+        res.json(monitor)
+    } catch (error) {
+        res.status(500).json({ error: 'Error interno' })
+    }
+}
+
 export async function getMonitorChecks(req: AuthRequest, res: Response) {
     try {
         const checks = await monitorsService.getMonitorChecks(req.userId!, req.params['id'] as string)
