@@ -69,5 +69,6 @@ export async function deleteMonitor(userId: string, id: string) {
     const monitor = await prisma.monitor.findFirst({ where: { id, userId } })
     if (!monitor) throw new Error('NOT_FOUND')
 
+    await prisma.check.deleteMany({ where: { monitorId: id } })
     await prisma.monitor.delete({ where: { id } })
 }
