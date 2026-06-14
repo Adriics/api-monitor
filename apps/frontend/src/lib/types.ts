@@ -4,6 +4,8 @@ export type Monitor = {
     url: string
     intervalMins: number
     currentStatus: string
+    uptime: number
+    avgLatency: number
     lastLatency: number
     hasIncident: string
     active: boolean

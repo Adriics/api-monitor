@@ -7,32 +7,26 @@ export async function getIncidents(userId: string) {
                 userId,
             },
         },
-        orderBy: {
-            startedAt: 'desc',
-        },
+        orderBy: { createdAt: 'desc' },
         include: {
-            monitor: {
-                select: {
-                    id: true,
-                    name: true,
-                },
-            },
+            monitor: true,
         },
     })
 
-    return incidents.map((incident) => {
+    return incidents.map(i => {
         const duration =
-            new Date(incident.resolvedAt ?? new Date()).getTime() -
-            new Date(incident.startedAt).getTime()
+            i.resolvedAt
+                ? i.resolvedAt.getTime() - i.startedAt.getTime()
+                : Date.now() - i.startedAt.getTime()
 
         return {
-            id: incident.id,
-            status: incident.status,
-            startedAt: incident.startedAt,
-            resolvedAt: incident.resolvedAt,
-            monitor: incident.monitor,
+            id: i.id,
+            monitorName: i.monitor.name,
+            url: i.monitor.url,
+            status: i.status,
+            startedAt: i.startedAt,
+            resolvedAt: i.resolvedAt,
             durationMs: duration,
-            durationMin: Math.floor(duration / 60000),
         }
     })
 }

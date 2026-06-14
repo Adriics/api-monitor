@@ -6,6 +6,6 @@ const router = Router()
 
 router.use(authMiddleware)
 
-router.get('/', getIncidents)
+router.get('/', authMiddleware, getIncidents)
 
 export default router

@@ -8,7 +8,7 @@ export async function getMonitors(userId: string) {
             _count: { select: { checks: true } },
             checks: {
                 orderBy: { checkedAt: 'desc' },
-                take: 1,
+                take: 50,
             },
             incidents: {
                 where: { status: 'OPEN' },
@@ -19,23 +19,38 @@ export async function getMonitors(userId: string) {
 
     return monitors.map(m => {
         const lastCheck = m.checks[0]
-        const activeIncident = m.incidents[0]
+        const hasIncident = m.incidents.length > 0
+
+        const total = m.checks.length
+        const up = m.checks.filter(c => c.status === 'UP').length
+
+        const uptime =
+            total === 0 ? 100 : Math.round((up / total) * 100)
+
+        const avgLatency =
+            m.checks.length === 0
+                ? 0
+                : Math.round(
+                    m.checks
+                        .filter(c => c.latencyMs)
+                        .reduce((acc, c) => acc + (c.latencyMs ?? 0), 0) /
+                    m.checks.filter(c => c.latencyMs).length || 1
+                )
 
         return {
             id: m.id,
             name: m.name,
             url: m.url,
             intervalMins: m.intervalMins,
-            alertEmail: m.alertEmail,
-            createdAt: m.createdAt,
             _count: m._count,
 
-            // 🧠 ESTADO REAL (clave)
-            currentStatus: activeIncident
+            currentStatus: hasIncident
                 ? 'DOWN'
                 : lastCheck?.status ?? 'UP',
 
-            hasIncident: !!activeIncident,
+            hasIncident,
+            uptime,
+            avgLatency,
         }
     })
 }

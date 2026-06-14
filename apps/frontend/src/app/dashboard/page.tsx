@@ -145,21 +145,22 @@ export default function DashboardPage() {
                                         </div>
                                     </div>
 
-                                    {/* Right */}
-                                    <div className="text-right">
-                                        <p className="text-zinc-400 text-xs">
+                                    <div className="text-right space-y-1">
+                                        <p className="text-sm text-white font-medium">
+                                            {monitor.uptime}% uptime
+                                        </p>
+
+                                        <p className="text-xs text-zinc-400">
+                                            {monitor.avgLatency} ms avg
+                                        </p>
+
+                                        <p className="text-xs text-zinc-600">
                                             {monitor._count.checks} checks
                                         </p>
 
-                                        <p className="text-zinc-600 text-xs mt-0.5">
+                                        <p className="text-xs text-zinc-600">
                                             cada {monitor.intervalMins} min
                                         </p>
-
-                                        {monitor.lastLatency && (
-                                            <p className="text-zinc-500 text-xs mt-1">
-                                                {monitor.lastLatency} ms
-                                            </p>
-                                        )}
                                     </div>
                                 </div>
                             </Link>

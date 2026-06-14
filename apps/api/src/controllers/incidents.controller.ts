@@ -6,7 +6,7 @@ export async function getIncidents(req: AuthRequest, res: Response) {
     try {
         const incidents = await incidentsService.getIncidents(req.userId!)
         res.json(incidents)
-    } catch (error) {
+    } catch {
         res.status(500).json({ error: 'Error interno' })
     }
 }
