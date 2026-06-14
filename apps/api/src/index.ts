@@ -3,6 +3,7 @@ import cors from 'cors'
 import dotenv from 'dotenv'
 import authRoutes from './routes/auth.routes'
 import monitorsRoutes from './routes/monitors.routes'
+import incidentsRoutes from './routes/incidents.routes'
 
 dotenv.config()
 
@@ -18,6 +19,8 @@ app.get('/health', (req, res) => {
 
 app.use('/auth', authRoutes)
 app.use('/monitors', monitorsRoutes)
+app.use('/incidents', incidentsRoutes)
+
 
 app.listen(PORT, () => {
     console.log(`API corriendo en http://localhost:${PORT}`)

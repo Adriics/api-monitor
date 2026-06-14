@@ -42,12 +42,21 @@ export default function DashboardPage() {
             <header className="border-b border-zinc-800 px-6 py-4 flex items-center justify-between">
                 <h1 className="text-white font-semibold">api-monitor</h1>
 
-                <button
-                    onClick={handleLogout}
-                    className="text-zinc-400 hover:text-white text-sm transition-colors"
-                >
-                    Cerrar sesión
-                </button>
+                <div className="flex items-center gap-4">
+                    <Link
+                        href="/dashboard/incidents"
+                        className="text-zinc-400 hover:text-white text-sm transition-colors"
+                    >
+                        Incidents
+                    </Link>
+
+                    <button
+                        onClick={handleLogout}
+                        className="text-zinc-400 hover:text-white text-sm transition-colors"
+                    >
+                        Cerrar sesión
+                    </button>
+                </div>
             </header>
 
             <main className="max-w-4xl mx-auto px-6 py-8">
