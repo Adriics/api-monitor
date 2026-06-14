@@ -26,12 +26,20 @@ export async function getMonitors(userId: string) {
 }
 
 export async function getMonitor(userId: string, id: string) {
-    return prisma.monitor.findFirst({
+    const monitor = await prisma.monitor.findFirst({
         where: { id, userId },
         include: {
-            _count: { select: { checks: true } }
-        }
+            _count: { select: { checks: true } },
+            checks: {
+                orderBy: { checkedAt: 'desc' },
+                take: 50,
+            },
+        },
     })
+
+    if (!monitor) throw new Error('NOT_FOUND')
+
+    return monitor
 }
 
 export async function getMonitorChecks(userId: string, monitorId: string) {
