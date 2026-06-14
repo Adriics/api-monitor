@@ -5,6 +5,7 @@ export type Monitor = {
     intervalMins: number
     currentStatus: string
     lastLatency: number
+    hasIncident: string
     active: boolean
     alertEmail: string | null
     createdAt: string

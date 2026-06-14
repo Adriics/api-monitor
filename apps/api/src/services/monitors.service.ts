@@ -10,20 +10,36 @@ export async function getMonitors(userId: string) {
                 orderBy: { checkedAt: 'desc' },
                 take: 1,
             },
+            incidents: {
+                where: { status: 'OPEN' },
+                take: 1,
+            },
         },
     })
 
-    return monitors.map((m) => {
+    return monitors.map(m => {
         const lastCheck = m.checks[0]
+        const activeIncident = m.incidents[0]
 
         return {
-            ...m,
-            currentStatus: lastCheck?.status ?? 'UP',
-            lastLatency: lastCheck?.latencyMs ?? null,
-            lastCheckedAt: lastCheck?.checkedAt ?? null,
+            id: m.id,
+            name: m.name,
+            url: m.url,
+            intervalMins: m.intervalMins,
+            alertEmail: m.alertEmail,
+            createdAt: m.createdAt,
+            _count: m._count,
+
+            // 🧠 ESTADO REAL (clave)
+            currentStatus: activeIncident
+                ? 'DOWN'
+                : lastCheck?.status ?? 'UP',
+
+            hasIncident: !!activeIncident,
         }
     })
 }
+
 
 export async function getMonitor(userId: string, id: string) {
     const monitor = await prisma.monitor.findFirst({

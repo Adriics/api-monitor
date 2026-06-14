@@ -84,20 +84,25 @@ export default function DashboardPage() {
                 <div className="space-y-3">
                     {monitors?.map(monitor => {
                         const status = monitor.currentStatus
+                        const hasIncident = monitor.hasIncident
 
                         const dotColor =
-                            status === 'UP'
-                                ? 'bg-emerald-400'
-                                : status === 'DOWN'
-                                    ? 'bg-red-500'
-                                    : 'bg-yellow-400'
+                            hasIncident
+                                ? 'bg-red-500'
+                                : status === 'UP'
+                                    ? 'bg-emerald-400'
+                                    : status === 'DOWN'
+                                        ? 'bg-red-500'
+                                        : 'bg-yellow-400'
 
                         const statusColor =
-                            status === 'UP'
-                                ? 'text-emerald-400'
-                                : status === 'DOWN'
-                                    ? 'text-red-400'
-                                    : 'text-yellow-400'
+                            hasIncident
+                                ? 'text-red-400'
+                                : status === 'UP'
+                                    ? 'text-emerald-400'
+                                    : status === 'DOWN'
+                                        ? 'text-red-400'
+                                        : 'text-yellow-400'
 
                         const borderColor =
                             status === 'UP'
@@ -123,7 +128,11 @@ export default function DashboardPage() {
                                             <p className="text-white text-sm font-medium">
                                                 {monitor.name}
                                             </p>
-
+                                            {hasIncident && (
+                                                <p className="text-xs text-red-400 font-medium mt-1">
+                                                    🚨 INCIDENT ACTIVE
+                                                </p>
+                                            )}
                                             <p className="text-zinc-500 text-xs mt-0.5">
                                                 {monitor.url}
                                             </p>
