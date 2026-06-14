@@ -3,6 +3,8 @@ export type Monitor = {
     name: string
     url: string
     intervalMins: number
+    currentStatus: string
+    lastLatency: number
     active: boolean
     alertEmail: string | null
     createdAt: string

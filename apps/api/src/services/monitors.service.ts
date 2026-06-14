@@ -1,11 +1,26 @@
 import prisma from '../lib/prisma'
 
 export async function getMonitors(userId: string) {
-    return prisma.monitor.findMany({
+    const monitors = await prisma.monitor.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
         include: {
-            _count: { select: { checks: true } }
+            _count: { select: { checks: true } },
+            checks: {
+                orderBy: { checkedAt: 'desc' },
+                take: 1,
+            },
+        },
+    })
+
+    return monitors.map((m) => {
+        const lastCheck = m.checks[0]
+
+        return {
+            ...m,
+            currentStatus: lastCheck?.status ?? 'UP',
+            lastLatency: lastCheck?.latencyMs ?? null,
+            lastCheckedAt: lastCheck?.checkedAt ?? null,
         }
     })
 }
