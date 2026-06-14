@@ -3,8 +3,8 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -16,16 +16,20 @@ model User {
 }
 
 model Monitor {
-  id           String   @id @default(cuid())
+  id           String  @id @default(cuid())
   name         String
   url          String
-  intervalMins Int      @default(5)
-  active       Boolean  @default(true)
+  intervalMins Int     @default(5)
+  active       Boolean @default(true)
   alertEmail   String?
   userId       String
-  user         User     @relation(fields: [userId], references: [id])
-  checks       Check[]
-  createdAt    DateTime @default(now())
+  user         User    @relation(fields: [userId], references: [id])
+
+  checks Check[]
+
+  incidents Incident[] // 👈 ESTO FALTABA
+
+  createdAt DateTime @default(now())
 }
 
 model Check {
@@ -42,4 +46,22 @@ enum CheckStatus {
   UP
   DOWN
   TIMEOUT
+}
+
+model Incident {
+  id        String  @id @default(cuid())
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id])
+
+  status IncidentStatus @default(OPEN)
+
+  startedAt  DateTime  @default(now())
+  resolvedAt DateTime?
+
+  createdAt DateTime @default(now())
+}
+
+enum IncidentStatus {
+  OPEN
+  RESOLVED
 }

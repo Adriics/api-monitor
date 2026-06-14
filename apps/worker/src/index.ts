@@ -56,6 +56,22 @@ async function runChecks() {
             orderBy: { checkedAt: 'desc' },
         })
 
+        const statusChanged =
+            lastCheck && lastCheck.status !== result.status
+
+        if (statusChanged && monitor.alertEmail) {
+            console.log(
+                `State change: ${monitor.name} ${lastCheck.status} → ${result.status}`
+            )
+
+            await sendAlert(
+                monitor.alertEmail,
+                monitor.name,
+                monitor.url,
+                result.status
+            )
+        }
+
         await prisma.check.create({
             data: {
                 monitorId: monitor.id,
@@ -64,12 +80,6 @@ async function runChecks() {
                 statusCode: result.statusCode,
             },
         })
-
-        const statusChanged = lastCheck && lastCheck.status !== result.status
-        if (statusChanged && monitor.alertEmail) {
-            await sendAlert(monitor.alertEmail, monitor.name, monitor.url, result.status)
-            console.log(`Alerta enviada a ${monitor.alertEmail} — ${monitor.name} es ${result.status}`)
-        }
 
         console.log(`${monitor.name} → ${result.status} (${result.latencyMs}ms)`)
     }
