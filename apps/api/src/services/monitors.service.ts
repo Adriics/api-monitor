@@ -54,20 +54,43 @@ export async function getMonitorChecks(userId: string, monitorId: string) {
 }
 
 export async function getMonitorStats(userId: string, monitorId: string) {
-    const monitor = await prisma.monitor.findFirst({ where: { id: monitorId, userId } })
+    const monitor = await prisma.monitor.findFirst({
+        where: { id: monitorId, userId },
+    })
+
     if (!monitor) throw new Error('NOT_FOUND')
 
-    const checks = await prisma.check.findMany({ where: { monitorId } })
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000)
+
+    const checks = await prisma.check.findMany({
+        where: {
+            monitorId,
+            checkedAt: { gte: since },
+        },
+    })
 
     const totalChecks = checks.length
-    if (totalChecks === 0) return { totalChecks: 0, uptime: 0, avgLatency: 0 }
+    if (totalChecks === 0) {
+        return { uptime: 0, totalChecks: 0, avgLatency: 0 }
+    }
 
     const upChecks = checks.filter(c => c.status === 'UP').length
     const uptime = Math.round((upChecks / totalChecks) * 100)
-    const latencies = checks.filter(c => c.latencyMs !== null).map(c => c.latencyMs!)
-    const avgLatency = latencies.length > 0 ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length) : 0
 
-    return { totalChecks, uptime, avgLatency }
+    const latencies = checks
+        .filter(c => c.latencyMs !== null)
+        .map(c => c.latencyMs!)
+
+    const avgLatency =
+        latencies.length > 0
+            ? Math.round(latencies.reduce((a, b) => a + b, 0) / latencies.length)
+            : 0
+
+    return {
+        uptime,
+        totalChecks,
+        avgLatency,
+    }
 }
 
 export async function createMonitor(userId: string, data: {

@@ -1,6 +1,6 @@
 import cron from 'node-cron'
 import axios from 'axios'
-import { PrismaClient } from '../../api/node_modules/@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import nodemailer from 'nodemailer'
 import dotenv from 'dotenv'
 
@@ -17,18 +17,25 @@ const transporter = nodemailer.createTransport({
     },
 })
 
-async function pingMonitor(monitorId: string, url: string) {
+async function pingMonitor(url: string) {
     const start = Date.now()
+
     try {
         const response = await axios.get(url, { timeout: 10000 })
-        const latencyMs = Date.now() - start
-        return { status: 'UP' as const, latencyMs, statusCode: response.status }
-    } catch (error: any) {
-        const latencyMs = Date.now() - start
-        if (error.code === 'ECONNABORTED') {
-            return { status: 'TIMEOUT' as const, latencyMs, statusCode: null }
+        return {
+            status: 'UP' as const,
+            latencyMs: Date.now() - start,
+            statusCode: response.status,
         }
-        return { status: 'DOWN' as const, latencyMs, statusCode: error.response?.status ?? null }
+    } catch (error: any) {
+        return {
+            status:
+                error.code === 'ECONNABORTED'
+                    ? ('TIMEOUT' as const)
+                    : ('DOWN' as const),
+            latencyMs: Date.now() - start,
+            statusCode: error.response?.status ?? null,
+        }
     }
 }
 
@@ -37,10 +44,53 @@ async function sendAlert(email: string, monitorName: string, url: string, status
         from: process.env.EMAIL_USER,
         to: email,
         subject: `[api-monitor] ${monitorName} está ${status}`,
-        text: `El monitor "${monitorName}" (${url}) ha cambiado de estado a ${status}.`,
+        text: `El monitor "${monitorName}" (${url}) ha cambiado a ${status}`,
     })
 }
 
+/* =========================
+   INCIDENT HANDLER
+========================= */
+async function handleIncident(monitorId: string, newStatus: string) {
+    const openIncident = await prisma.incident.findFirst({
+        where: {
+            monitorId,
+            status: 'OPEN',
+        },
+        orderBy: { startedAt: 'desc' },
+    })
+
+    const isDown = newStatus === 'DOWN' || newStatus === 'TIMEOUT'
+
+    // 🔴 abrir incidente
+    if (isDown && !openIncident) {
+        await prisma.incident.create({
+            data: {
+                monitorId,
+                status: 'OPEN',
+            },
+        })
+
+        console.log('🟥 Incident OPEN')
+    }
+
+    // 🟢 cerrar incidente
+    if (!isDown && openIncident) {
+        await prisma.incident.update({
+            where: { id: openIncident.id },
+            data: {
+                status: 'RESOLVED',
+                resolvedAt: new Date(),
+            },
+        })
+
+        console.log('🟩 Incident RESOLVED')
+    }
+}
+
+/* =========================
+   MAIN LOOP
+========================= */
 async function runChecks() {
     console.log(`[${new Date().toISOString()}] Ejecutando checks...`)
 
@@ -49,7 +99,7 @@ async function runChecks() {
     })
 
     for (const monitor of monitors) {
-        const result = await pingMonitor(monitor.id, monitor.url)
+        const result = await pingMonitor(monitor.url)
 
         const lastCheck = await prisma.check.findFirst({
             where: { monitorId: monitor.id },
@@ -59,19 +109,21 @@ async function runChecks() {
         const statusChanged =
             lastCheck && lastCheck.status !== result.status
 
+        // 📧 email solo en cambio de estado
         if (statusChanged && monitor.alertEmail) {
-            console.log(
-                `State change: ${monitor.name} ${lastCheck.status} → ${result.status}`
-            )
-
             await sendAlert(
                 monitor.alertEmail,
                 monitor.name,
                 monitor.url,
                 result.status
             )
+
+            console.log(
+                `📧 Alert sent: ${monitor.name} → ${result.status}`
+            )
         }
 
+        // 💾 guardar check
         await prisma.check.create({
             data: {
                 monitorId: monitor.id,
@@ -81,9 +133,13 @@ async function runChecks() {
             },
         })
 
+        // 🚨 incidents
+        await handleIncident(monitor.id, result.status)
+
         console.log(`${monitor.name} → ${result.status} (${result.latencyMs}ms)`)
     }
 }
 
 cron.schedule('* * * * *', runChecks)
+
 console.log('Worker iniciado — checks cada minuto')

@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useParams } from 'next/navigation'
 import api from '@/lib/api'
 import { Monitor, Check } from '@/lib/types'
+import LatencyChart from '@/components/LatencyChart'
 
 type MonitorDetail = Monitor & {
     checks: Check[]
@@ -85,6 +86,10 @@ export default function MonitorDetailPage() {
                         </p>
                     </div>
                 </div>
+
+                {data.checks?.length > 0 && (
+                    <LatencyChart checks={data.checks} />
+                )}
 
                 {/* Checks list */}
                 <div className="bg-zinc-900 border border-zinc-800 rounded-xl">
