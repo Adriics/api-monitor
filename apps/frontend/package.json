@@ -19,6 +19,9 @@
     "recharts": "^3.8.1",
     "zod": "^4.4.3"
   },
+  "overrides": {
+    "lightningcss": "1.28.2"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
